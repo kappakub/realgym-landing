@@ -19,6 +19,7 @@ const description =
   "ฟิตเนส Open Air ขนาดใหญ่ 7 สาขาในกรุงเทพฯ เครื่องเล่นกว่า 100 เครื่อง คลาสกว่า 200 คลาสต่อเดือน จองคลาสง่าย ๆ ผ่าน LINE ทดลองเล่นฟรี 3 วัน";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://realgym-landing.vercel.app"),
   title,
   description,
   openGraph: {
