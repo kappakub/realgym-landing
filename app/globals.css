@@ -46,3 +46,52 @@ body {
   font-family: var(--font-body), sans-serif;
   line-height: 1.65;
 }
+
+/* ===== อนิเมชันตัวการ์ตูนจิบิ (ส่วนเปลี่ยนร่างใน 3 เดือน) ===== */
+.anim-bob,
+.anim-lift,
+.anim-blink,
+.anim-flash,
+.anim-sparkle,
+.anim-scan,
+.anim-float,
+.anim-grow,
+.anim-tick,
+.anim-sway,
+.anim-fill,
+.anim-month {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.anim-bob { animation: chibi-bob 1.6s ease-in-out infinite; }
+.anim-lift { animation: chibi-lift 1.2s ease-in-out infinite; }
+.anim-blink { animation: chibi-blink 4s infinite; }
+.anim-flash { animation: chibi-flash 2.4s ease-out infinite; }
+.anim-sparkle { animation: chibi-sparkle 1.8s ease-in-out infinite; }
+.anim-scan { animation: chibi-scan 2s ease-in-out infinite; }
+.anim-float { animation: chibi-float 2.6s ease-out infinite; }
+.anim-grow { transform-origin: bottom; animation: chibi-grow 2s ease-in-out infinite; }
+.anim-tick { animation: chibi-tick 3s ease-in-out infinite; }
+.anim-sway { transform-origin: bottom; animation: chibi-sway 2.4s ease-in-out infinite; }
+.anim-fill { transform-origin: left; animation: chibi-fill 6s linear infinite; }
+.anim-month { opacity: 0; animation: chibi-month 6s linear infinite; }
+
+@keyframes chibi-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes chibi-lift { 0%, 100% { transform: translateY(14px); } 50% { transform: translateY(-4px); } }
+@keyframes chibi-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+@keyframes chibi-flash { 0%, 70%, 100% { opacity: 0; } 75% { opacity: 1; } }
+@keyframes chibi-sparkle { 0%, 100% { transform: scale(0.4) rotate(0deg); opacity: 0.3; } 50% { transform: scale(1.1) rotate(45deg); opacity: 1; } }
+@keyframes chibi-scan { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(26px); } }
+@keyframes chibi-float { 0% { transform: translateY(0) scale(0.6); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-34px) scale(1); opacity: 0; } }
+@keyframes chibi-grow { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
+@keyframes chibi-tick { 0%, 20% { opacity: 0; transform: scale(0.3); } 35%, 85% { opacity: 1; transform: scale(1); } 100% { opacity: 0; } }
+@keyframes chibi-sway { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+@keyframes chibi-fill { 0% { transform: scaleX(0.05); } 95%, 100% { transform: scaleX(1); } }
+@keyframes chibi-month { 0%, 33% { opacity: 1; } 33.5%, 100% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="anim-"] { animation: none !important; }
+  .anim-month { opacity: 0; }
+  .anim-month:last-of-type { opacity: 1; }
+}

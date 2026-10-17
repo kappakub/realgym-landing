@@ -1,4 +1,5 @@
 import BookingSection from "./BookingSection";
+import Journey from "./Journey";
 import {
   FACEBOOK_URL,
   LINE_URL,
@@ -135,6 +136,7 @@ export default function Home() {
           <nav className="hidden gap-6 text-sm text-muted md:flex">
             <a href="#highlights" className="hover:text-foreground">จุดเด่น</a>
             <a href="#booking" className="hover:text-foreground">จองคลาส</a>
+            <a href="#journey" className="hover:text-foreground">เปลี่ยนร่าง 3 เดือน</a>
             <a href="#pricing" className="hover:text-foreground">ราคา</a>
             <a href="#faq" className="hover:text-foreground">คำถาม</a>
             <a href="#contact" className="hover:text-foreground">สาขา</a>
@@ -229,6 +231,18 @@ export default function Home() {
                 </li>
               ))}
             </ol>
+          </div>
+        </section>
+
+        {/* เปลี่ยนร่างใน 3 เดือน */}
+        <section id="journey" className="scroll-mt-20 py-20">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <SectionTitle
+              kicker="3-MONTH JOURNEY"
+              title="เปลี่ยนร่างใน 3 เดือน กับ REAL GYM"
+              sub="ไม่ต้องเริ่มคนเดียว เรามีเทรนเนอร์พาไปทีละสเต็ป ตั้งแต่วันแรกจนถึงวันถ่ายรูปร่างทอง"
+            />
+            <Journey />
           </div>
         </section>
 
