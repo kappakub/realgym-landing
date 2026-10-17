@@ -1,4 +1,4 @@
-import BookingPicker from "./BookingPicker";
+import BookingSection from "./BookingSection";
 import {
   FACEBOOK_URL,
   LINE_URL,
@@ -6,8 +6,8 @@ import {
   PHONE,
   PHONE_URL,
   YOUTUBE_URL,
+  CLASS_PRICE,
   branches,
-  classes,
   lineMessageUrl,
 } from "./data";
 
@@ -58,7 +58,7 @@ const highlights = [
   {
     icon: "📅",
     title: "จองคลาสง่าย จ่ายสะดวก",
-    desc: "เลือกคลาส สาขา และเวลาที่ต้องการ กดส่งทาง LINE แอดมินยืนยันที่ว่างและส่งช่องทางชำระเงินให้ทันที ไม่ต้องโทร ไม่ต้องรอ",
+    desc: "ดูตารางคลาสแบบปฏิทิน เลือกวันและเวลาที่สะดวก กดจองแล้วสแกน QR พร้อมเพย์จ่ายได้ทันที ไม่ต้องโทร ไม่ต้องรอ",
   },
   {
     icon: "🌤️",
@@ -98,10 +98,10 @@ const plans = [
 ];
 
 const payment = [
-  { step: "1", title: "เลือกคลาสแล้วกดส่งทาง LINE", desc: "ระบบพิมพ์ข้อความจองให้อัตโนมัติ" },
-  { step: "2", title: "แอดมินยืนยันที่ว่าง", desc: "ตอบกลับพร้อมรายละเอียดคลาสและยอดชำระ" },
-  { step: "3", title: "ชำระเงิน", desc: "โอน / พร้อมเพย์ ตามที่แอดมินแจ้ง หรือชำระที่เคาน์เตอร์สาขา" },
-  { step: "4", title: "มาเล่นได้เลย", desc: "แจ้งชื่อที่เคาน์เตอร์ แล้วเข้าคลาสตามเวลา" },
+  { step: "1", title: "เลือกวันในปฏิทิน", desc: "เลือกสาขาและวันที่อยากมาเล่น" },
+  { step: "2", title: "กดจองคลาส", desc: "เลือกคลาสและเวลาที่ชอบ" },
+  { step: "3", title: "สแกน QR จ่าย", desc: `สแกนพร้อมเพย์ ${CLASS_PRICE} บาท ด้วยแอปธนาคารใดก็ได้` },
+  { step: "4", title: "ส่งสลิปทาง LINE", desc: "แอดมินยืนยันที่นั่ง แล้วมาเล่นได้เลย" },
 ];
 
 const faqs = [
@@ -111,7 +111,7 @@ const faqs = [
   },
   {
     q: "จองคลาสแล้วจ่ายเงินยังไง?",
-    a: "เลือกคลาสในหัวข้อ “จองคลาส” แล้วกดส่งทาง LINE แอดมินจะยืนยันที่ว่างและส่งช่องทางชำระเงิน (โอน / พร้อมเพย์) ให้ หรือชำระที่เคาน์เตอร์สาขาก็ได้",
+    a: `เลือกวันในปฏิทินหัวข้อ “จองคลาส” กดจองคลาสที่ต้องการ แล้วสแกน QR พร้อมเพย์จ่าย ${CLASS_PRICE} บาท จากนั้นกดส่งสลิปทาง LINE แอดมินจะยืนยันที่นั่งให้`,
   },
   {
     q: "มือใหม่ไม่เคยเล่นฟิตเนส มาได้ไหม?",
@@ -143,7 +143,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main id="top" className="overflow-x-hidden">
+      <main id="top" className="overflow-x-clip">
         {/* ส่วนหัว */}
         <section className="relative">
           <div
@@ -174,7 +174,7 @@ export default function Home() {
                 href="#booking"
                 className="inline-flex items-center justify-center rounded-full border border-line px-8 py-4 font-display text-lg font-medium transition hover:border-brand"
               >
-                ดูตารางจองคลาส
+                จองคลาส / สแกนจ่าย
               </a>
             </div>
 
@@ -212,25 +212,12 @@ export default function Home() {
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <SectionTitle
               kicker="BOOK A CLASS"
-              title="จองคลาสได้ในไม่กี่คลิก"
-              sub="มากกว่า 200 คลาสต่อเดือน เลือกคลาสที่ชอบ แล้วส่งคำขอจองทาง LINE ได้เลย"
+              title="จองคลาสจากปฏิทิน สแกนจ่ายได้ทันที"
+              sub={`เลือกวัน เลือกคลาส แล้วสแกน QR พร้อมเพย์ คลาสละ ${CLASS_PRICE} บาท`}
             />
-            <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr]">
-              <div>
-                <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                  {classes.map((c) => (
-                    <li key={c.name} className="rounded-2xl border border-line bg-background p-4">
-                      <p className="text-xs text-brand">{c.tag}</p>
-                      <p className="font-display text-lg font-bold">{c.name}</p>
-                      <p className="text-sm text-muted">{c.desc}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <BookingPicker />
-            </div>
+            <BookingSection />
 
-            <h3 className="mb-5 mt-16 font-display text-2xl font-bold">จอง → จ่าย → มาเล่น</h3>
+            <h3 className="mb-5 mt-16 font-display text-2xl font-bold">จอง → สแกนจ่าย → มาเล่น</h3>
             <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {payment.map((p) => (
                 <li key={p.step} className="rounded-2xl border border-line bg-background p-5">

@@ -11,6 +11,11 @@ export function lineMessageUrl(text: string) {
   return `https://line.me/R/oaMessage/${LINE_ID}/?text=${encodeURIComponent(text)}`;
 }
 
+/** พร้อมเพย์สำหรับรับเงินค่าคลาส — ตอนนี้เป็นเลขจำลอง ต้องเปลี่ยนเป็นของร้านจริงก่อนใช้งาน */
+export const PROMPTPAY_ID = "0000000000";
+export const PROMPTPAY_IS_DEMO = true;
+export const CLASS_PRICE = 200;
+
 export const branches = [
   { name: "ซาฟารี (คลองสามวา)", phone: "0967575911", lat: 13.8578353, lng: 100.6975252 },
   { name: "พระราม 5", phone: "0956488964", lat: 13.8370501, lng: 100.5069725 },
@@ -30,4 +35,43 @@ export const classes = [
   { name: "BODY COMBAT", tag: "Combat", desc: "คาร์ดิโอผสมท่าต่อสู้ สุดมันส์" },
   { name: "TRX", tag: "Functional", desc: "ฝึกแรงและการทรงตัวด้วยน้ำหนักตัว" },
   { name: "BJJ", tag: "Combat", desc: "ฝึกการต่อสู้ ควบคุมร่างกาย เพิ่มความมั่นใจ" },
+];
+
+/** ตารางคลาสตัวอย่างรายสัปดาห์ (index 0 = อาทิตย์ ... 6 = เสาร์) */
+export const weeklySchedule: { time: string; cls: string }[][] = [
+  [
+    { time: "09:00", cls: "YOGA" },
+    { time: "10:30", cls: "HYROX" },
+    { time: "16:00", cls: "ZUMBA" },
+  ],
+  [
+    { time: "07:30", cls: "BODY PUMP" },
+    { time: "18:00", cls: "ZUMBA" },
+    { time: "19:15", cls: "BODY COMBAT" },
+  ],
+  [
+    { time: "07:30", cls: "PILATES" },
+    { time: "18:00", cls: "HYROX" },
+    { time: "19:15", cls: "YOGA" },
+  ],
+  [
+    { time: "07:30", cls: "TRX" },
+    { time: "18:00", cls: "BODY PUMP" },
+    { time: "19:15", cls: "BJJ" },
+  ],
+  [
+    { time: "07:30", cls: "YOGA" },
+    { time: "18:00", cls: "ZUMBA" },
+    { time: "19:15", cls: "BODY COMBAT" },
+  ],
+  [
+    { time: "07:30", cls: "PILATES" },
+    { time: "18:00", cls: "HYROX" },
+    { time: "19:15", cls: "TRX" },
+  ],
+  [
+    { time: "09:00", cls: "BODY PUMP" },
+    { time: "10:30", cls: "BJJ" },
+    { time: "16:00", cls: "PILATES" },
+  ],
 ];
