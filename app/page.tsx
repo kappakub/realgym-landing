@@ -1,4 +1,5 @@
 import BookingSection from "./BookingSection";
+import Link from "next/link";
 import Journey from "./Journey";
 import {
   FACEBOOK_URL,
@@ -137,6 +138,7 @@ export default function Home() {
             <a href="#highlights" className="hover:text-foreground">จุดเด่น</a>
             <a href="#booking" className="hover:text-foreground">จองคลาส</a>
             <a href="#journey" className="hover:text-foreground">เปลี่ยนร่าง 3 เดือน</a>
+            <Link href="/hyrox" className="text-brand hover:text-foreground">บันทึก HYROX</Link>
             <a href="#pricing" className="hover:text-foreground">ราคา</a>
             <a href="#faq" className="hover:text-foreground">คำถาม</a>
             <a href="#contact" className="hover:text-foreground">สาขา</a>
@@ -243,6 +245,22 @@ export default function Home() {
               sub="ไม่ต้องเริ่มคนเดียว เรามีเทรนเนอร์พาไปทีละสเต็ป ตั้งแต่วันแรกจนถึงวันถ่ายรูปร่างทอง"
             />
             <Journey />
+
+            <Link
+              href="/hyrox"
+              className="mt-12 flex flex-col gap-4 rounded-3xl border border-rox/50 bg-gradient-to-br from-rox/15 to-transparent p-6 transition hover:border-rox sm:flex-row sm:items-center sm:p-8"
+            >
+              <span className="flex-1">
+                <span className="font-display text-sm font-medium tracking-widest text-rox">สำหรับสาย HYROX</span>
+                <span className="mt-1 block font-display text-2xl font-bold">บันทึกผลซ้อม HYROX Simulation ของคุณ</span>
+                <span className="mt-1 block text-muted">
+                  จับเวลาแบบแข่งจริง ครบ 8 สถานี + ROX ZONE เก็บประวัติและดู PB ของตัวเอง
+                </span>
+              </span>
+              <span className="self-start rounded-full bg-rox px-6 py-3 font-display font-bold text-brand-ink sm:self-center">
+                เริ่มบันทึก →
+              </span>
+            </Link>
           </div>
         </section>
 

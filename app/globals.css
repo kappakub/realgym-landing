@@ -11,6 +11,7 @@
   --brand: #ccfe0e;
   --brand-ink: #121110;
   --warm: #ffb347;
+  --rox: #5ec8ff;
 }
 
 @theme inline {
@@ -23,6 +24,7 @@
   --color-brand: var(--brand);
   --color-brand-ink: var(--brand-ink);
   --color-warm: var(--warm);
+  --color-rox: var(--rox);
 
   --font-sans: var(--font-body);
   --font-display: var(--font-heading);
@@ -76,6 +78,9 @@ body {
 .anim-sway { transform-origin: bottom; animation: chibi-sway 2.4s ease-in-out infinite; }
 .anim-fill { transform-origin: left; animation: chibi-fill 6s linear infinite; }
 .anim-month { opacity: 0; animation: chibi-month 6s linear infinite; }
+.anim-spin { transform-box: fill-box; transform-origin: 50% 100%; animation: chibi-spin 3s linear infinite; }
+.anim-dash { animation: chibi-dash 0.9s linear infinite; }
+.anim-pop { transform-box: fill-box; transform-origin: center; animation: chibi-pop 2.4s ease-in-out infinite; }
 
 @keyframes chibi-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 @keyframes chibi-lift { 0%, 100% { transform: translateY(14px); } 50% { transform: translateY(-4px); } }
@@ -89,6 +94,9 @@ body {
 @keyframes chibi-sway { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
 @keyframes chibi-fill { 0% { transform: scaleX(0.05); } 95%, 100% { transform: scaleX(1); } }
 @keyframes chibi-month { 0%, 33% { opacity: 1; } 33.5%, 100% { opacity: 0; } }
+@keyframes chibi-spin { to { transform: rotate(360deg); } }
+@keyframes chibi-dash { 0% { transform: translateX(10px); opacity: 0; } 40% { opacity: 1; } 100% { transform: translateX(-24px); opacity: 0; } }
+@keyframes chibi-pop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
 
 @media (prefers-reduced-motion: reduce) {
   [class*="anim-"] { animation: none !important; }
