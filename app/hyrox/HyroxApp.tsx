@@ -3,14 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   DIVISIONS,
-  STATION_PRESETS,
   formatTime,
   hyroxTemplate,
-  parseTime,
   todayISO,
   totals,
   type Segment,
-  type SegmentKind,
   type Session,
   type SessionMode,
 } from "./hyrox";
@@ -28,64 +25,8 @@ import {
   type User,
 } from "./store";
 
-const KIND_STYLE: Record<SegmentKind, { label: string; dot: string; text: string }> = {
-  run: { label: "วิ่ง", dot: "bg-brand", text: "text-brand" },
-  station: { label: "สถานี", dot: "bg-warm", text: "text-warm" },
-  roxzone: { label: "ROX ZONE", dot: "bg-rox", text: "text-rox" },
-};
-
-const inputCls =
-  "w-full rounded-xl border border-line bg-background px-3 py-2.5 text-foreground placeholder:text-muted/60 focus:border-brand focus:outline-none";
-
-/* ---------- ช่องกรอกเวลา ---------- */
-
-function TimeInput({ ms, onChange, label }: { ms: number | null; onChange: (ms: number | null) => void; label: string }) {
-  // remount ทุกครั้งที่ค่าเปลี่ยนจากข้างนอก (เช่นกดจับเวลา) ผ่าน key ด้านล่าง
-  const [text, setText] = useState(ms == null ? "" : formatTime(ms));
-  const [bad, setBad] = useState(false);
-  return (
-    <input
-      inputMode="numeric"
-      aria-label={`เวลา ${label}`}
-      placeholder="mm:ss"
-      value={text}
-      onChange={(e) => {
-        setText(e.target.value);
-        setBad(false);
-      }}
-      onBlur={() => {
-        if (!text.trim()) return onChange(null);
-        const v = parseTime(text);
-        if (v == null) setBad(true);
-        else onChange(v);
-      }}
-      className={`w-24 shrink-0 rounded-xl border bg-background px-3 py-2 text-center font-mono text-base focus:outline-none ${
-        bad ? "border-red-500" : "border-line focus:border-brand"
-      }`}
-    />
-  );
-}
-
-/* ---------- สรุปเวลา ---------- */
-
-function Totals({ segments }: { segments: Segment[] }) {
-  const t = totals(segments);
-  return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-      {[
-        { l: "วิ่งรวม", v: t.run, c: "text-brand" },
-        { l: "สถานีรวม", v: t.station, c: "text-warm" },
-        { l: "ROX ZONE รวม", v: t.roxzone, c: "text-rox" },
-        { l: "เวลารวม", v: t.total, c: "text-foreground" },
-      ].map((x) => (
-        <div key={x.l} className="rounded-2xl bg-surface-2 p-3">
-          <p className="text-xs text-muted">{x.l}</p>
-          <p className={`font-mono text-xl font-bold ${x.c}`}>{formatTime(x.v)}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
+import CustomProgram from "./CustomProgram";
+import { KIND_STYLE, TimeInput, Totals, inputCls } from "./ui";
 
 /* ---------- นาฬิกาจับเวลาแบบแข่งจริง ---------- */
 
@@ -198,107 +139,12 @@ function HyroxRows({ segments, setMs }: { segments: Segment[]; setMs: (i: number
   );
 }
 
-/* ---------- ฟอร์มโปรแกรมกำหนดเอง ---------- */
-
-function CustomRows({ segments, setSegments }: { segments: Segment[]; setSegments: (s: Segment[]) => void }) {
-  const update = (i: number, patch: Partial<Segment>) =>
-    setSegments(segments.map((s, j) => (j === i ? { ...s, ...patch } : s)));
-  const move = (i: number, dir: -1 | 1) => {
-    const j = i + dir;
-    if (j < 0 || j >= segments.length) return;
-    const next = [...segments];
-    [next[i], next[j]] = [next[j], next[i]];
-    setSegments(next);
-  };
-  const add = (kind: SegmentKind) =>
-    setSegments([
-      ...segments,
-      kind === "run"
-        ? { kind, name: "Run", amount: "1 km", ms: null }
-        : kind === "roxzone"
-          ? { kind, name: "ROX ZONE", amount: "", ms: null }
-          : { kind, name: "SkiErg", amount: "1000 m", ms: null },
-    ]);
-
-  return (
-    <div className="space-y-2">
-      {segments.map((s, i) => (
-        <div key={i} className="rounded-2xl bg-surface-2 p-3">
-          <div className="flex items-center gap-2">
-            <span className={`text-xs font-semibold ${KIND_STYLE[s.kind].text}`}>
-              {i + 1}. {KIND_STYLE[s.kind].label}
-            </span>
-            <span className="flex-1" />
-            <button type="button" aria-label="เลื่อนขึ้น" onClick={() => move(i, -1)} className="h-8 w-8 rounded-full border border-line text-sm">↑</button>
-            <button type="button" aria-label="เลื่อนลง" onClick={() => move(i, 1)} className="h-8 w-8 rounded-full border border-line text-sm">↓</button>
-            <button
-              type="button"
-              aria-label="ลบ"
-              onClick={() => setSegments(segments.filter((_, j) => j !== i))}
-              className="h-8 w-8 rounded-full border border-line text-sm text-red-400"
-            >
-              ✕
-            </button>
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {s.kind === "station" ? (
-              <>
-                <select
-                  aria-label="สถานี"
-                  value={STATION_PRESETS.includes(s.name) ? s.name : "อื่น ๆ"}
-                  onChange={(e) => update(i, { name: e.target.value === "อื่น ๆ" ? "" : e.target.value })}
-                  className={`${inputCls} min-w-0 flex-1 basis-40`}
-                >
-                  {STATION_PRESETS.map((p) => (
-                    <option key={p}>{p}</option>
-                  ))}
-                </select>
-                {!STATION_PRESETS.includes(s.name) && (
-                  <input
-                    aria-label="ชื่อสถานี"
-                    placeholder="ชื่อท่า"
-                    value={s.name}
-                    onChange={(e) => update(i, { name: e.target.value })}
-                    className={`${inputCls} min-w-0 flex-1 basis-32`}
-                  />
-                )}
-              </>
-            ) : (
-              <span className="flex-1 basis-40 font-display font-bold">{s.name}</span>
-            )}
-            <input
-              aria-label="ระยะหรือจำนวน"
-              placeholder={s.kind === "run" ? "เช่น 1 km" : "เช่น 50 m / 20 reps"}
-              value={s.amount}
-              onChange={(e) => update(i, { amount: e.target.value })}
-              className={`${inputCls} w-32 flex-1 basis-28`}
-            />
-            <TimeInput key={`${i}-${s.ms}`} ms={s.ms} label={s.name} onChange={(v) => update(i, { ms: v })} />
-          </div>
-        </div>
-      ))}
-      <div className="grid grid-cols-3 gap-2 pt-1">
-        <button type="button" onClick={() => add("run")} className="rounded-full border border-brand/60 py-2.5 text-sm font-semibold text-brand">+ วิ่ง</button>
-        <button type="button" onClick={() => add("station")} className="rounded-full border border-warm/60 py-2.5 text-sm font-semibold text-warm">+ สถานี</button>
-        <button type="button" onClick={() => add("roxzone")} className="rounded-full border border-rox/60 py-2.5 text-sm font-semibold text-rox">+ ROX ZONE</button>
-      </div>
-    </div>
-  );
-}
-
 /* ---------- หน้าบันทึกใหม่ ---------- */
-
-const customStart = (): Segment[] => [
-  { kind: "run", name: "Run", amount: "1 km", ms: null },
-  { kind: "roxzone", name: "ROX ZONE", amount: "", ms: null },
-  { kind: "station", name: "SkiErg", amount: "1000 m", ms: null },
-];
 
 function NewSessionForm({ onSaved }: { onSaved: () => void }) {
   const [mode, setMode] = useState<SessionMode | null>(null);
   const [date, setDate] = useState(todayISO);
   const [division, setDivision] = useState(DIVISIONS[0]);
-  const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
   const [segments, setSegments] = useState<Segment[]>([]);
   const [saving, setSaving] = useState(false);
@@ -306,7 +152,7 @@ function NewSessionForm({ onSaved }: { onSaved: () => void }) {
 
   const pick = (m: SessionMode) => {
     setMode(m);
-    setSegments(m === "hyrox" ? hyroxTemplate() : customStart());
+    setSegments(m === "hyrox" ? hyroxTemplate() : []);
     setError("");
   };
   const setMs = (i: number, ms: number | null) =>
@@ -317,22 +163,20 @@ function NewSessionForm({ onSaved }: { onSaved: () => void }) {
   const save = async () => {
     if (!mode) return;
     if (filled === 0) return setError("กรอกเวลาอย่างน้อย 1 ช่วงก่อนบันทึกนะ");
-    if (mode === "custom" && segments.some((s) => !s.name.trim())) return setError("ตั้งชื่อท่าให้ครบทุกสถานีก่อนนะ");
     setSaving(true);
     setError("");
     try {
       await saveSession({
         date,
         mode,
-        title: mode === "hyrox" ? "HYROX Simulation" : title.trim() || "โปรแกรมของฉัน",
-        division: mode === "hyrox" ? division : "",
+        title: "HYROX Simulation",
+        division,
         segments,
         total_ms: totals(segments).total,
         note: note.trim(),
       });
       setMode(null);
       setNote("");
-      setTitle("");
       onSaved();
     } catch {
       setError("บันทึกไม่สำเร็จ ลองใหม่อีกครั้งนะ");
@@ -363,52 +207,58 @@ function NewSessionForm({ onSaved }: { onSaved: () => void }) {
           <span className="rounded-full bg-warm px-3 py-1 text-xs font-bold text-brand-ink">ปรับเองได้</span>
           <p className="mt-4 font-display text-2xl font-bold">โปรแกรมของฉัน</p>
           <p className="mt-1 text-sm text-muted">
-            ซ้อมวันนี้วิ่งกี่กิโล ทำสถานีไหนบ้าง เพิ่ม ลบ สลับลำดับ แก้ระยะได้ตามใจ
+            สร้างโปรแกรมเอง ระยะ / จำนวนครั้ง / เวลา ตั้งรอบได้ มีนับถอยหลังแบบ HIIT พร้อมเสียงเตือนตอนเปลี่ยนท่า
           </p>
         </button>
       </div>
     );
   }
 
+  const back = (
+    <button type="button" onClick={() => setMode(null)} className="text-sm text-muted hover:text-foreground">
+      ← เลือกรูปแบบใหม่
+    </button>
+  );
+
+  if (mode === "custom") {
+    return (
+      <div className="space-y-5">
+        {back}
+        <CustomProgram
+          onSaved={() => {
+            setMode(null);
+            onSaved();
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
-      <button type="button" onClick={() => setMode(null)} className="text-sm text-muted hover:text-foreground">
-        ← เลือกรูปแบบใหม่
-      </button>
+      {back}
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block text-sm">
           <span className="mb-1 block text-muted">วันที่ซ้อม</span>
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
         </label>
-        {mode === "hyrox" ? (
-          <label className="block text-sm">
-            <span className="mb-1 block text-muted">รุ่นที่ซ้อม</span>
-            <select value={division} onChange={(e) => setDivision(e.target.value)} className={inputCls}>
-              {DIVISIONS.map((d) => (
-                <option key={d}>{d}</option>
-              ))}
-            </select>
-          </label>
-        ) : (
-          <label className="block text-sm">
-            <span className="mb-1 block text-muted">ชื่อโปรแกรมวันนี้</span>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="เช่น Half Sim / ซ้อมขา" className={inputCls} />
-          </label>
-        )}
+        <label className="block text-sm">
+          <span className="mb-1 block text-muted">รุ่นที่ซ้อม</span>
+          <select value={division} onChange={(e) => setDivision(e.target.value)} className={inputCls}>
+            {DIVISIONS.map((d) => (
+              <option key={d}>{d}</option>
+            ))}
+          </select>
+        </label>
       </div>
 
-      {mode === "hyrox" ? (
-        <>
-          <RaceTimer segments={segments} onSplit={(i, ms) => setMs(i, ms)} />
-          <div className="flex items-center justify-between text-sm">
-            <p className="font-display font-bold">ผลแยกแต่ละช่วง</p>
-            <p className="text-muted">กรอกแล้ว {filled}/{segments.length}</p>
-          </div>
-          <HyroxRows segments={segments} setMs={setMs} />
-        </>
-      ) : (
-        <CustomRows segments={segments} setSegments={setSegments} />
-      )}
+        <RaceTimer segments={segments} onSplit={(i, ms) => setMs(i, ms)} />
+        <div className="flex items-center justify-between text-sm">
+          <p className="font-display font-bold">ผลแยกแต่ละช่วง</p>
+          <p className="text-muted">กรอกแล้ว {filled}/{segments.length}</p>
+        </div>
+        <HyroxRows segments={segments} setMs={setMs} />
+
 
       <Totals segments={segments} />
 
@@ -477,7 +327,8 @@ function History({ sessions, onDeleted }: { sessions: Session[]; onDeleted: () =
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
               <span className="text-brand">วิ่ง {formatTime(t.run)}</span>
               <span className="text-warm">สถานี {formatTime(t.station)}</span>
-              <span className="text-rox">ROX ZONE {formatTime(t.roxzone)}</span>
+              {s.segments.some((x) => x.kind === "roxzone") && <span className="text-rox">ROX ZONE {formatTime(t.roxzone)}</span>}
+              {t.rest > 0 && <span className="text-muted">พัก {formatTime(t.rest)}</span>}
             </div>
             {isOpen && (
               <div className="mt-4 space-y-1 border-t border-line pt-3 text-sm">

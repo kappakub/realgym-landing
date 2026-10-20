@@ -1,4 +1,4 @@
-export type SegmentKind = "run" | "station" | "roxzone";
+export type SegmentKind = "run" | "station" | "roxzone" | "rest";
 
 export type Segment = {
   kind: SegmentKind;
@@ -101,7 +101,8 @@ export function totals(segments: Segment[]) {
   const run = sum("run");
   const station = sum("station");
   const roxzone = sum("roxzone");
-  return { run, station, roxzone, total: run + station + roxzone };
+  const rest = sum("rest");
+  return { run, station, roxzone, rest, total: run + station + roxzone + rest };
 }
 
 export function todayISO() {
