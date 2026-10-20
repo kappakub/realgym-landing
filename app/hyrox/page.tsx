@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Guide from "./Guide";
+import GuideToggle from "./GuideToggle";
 import HyroxLoader from "./HyroxLoader";
 
 export const metadata: Metadata = {
@@ -27,21 +28,18 @@ export default function HyroxPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl overflow-x-clip px-4 pb-20 pt-10 sm:px-6">
+      <main className="mx-auto max-w-5xl overflow-x-clip px-4 pb-20 pt-6 sm:px-6 sm:pt-10">
         <p className="font-display text-sm font-medium tracking-widest text-brand">HYROX SIMULATION LOG</p>
-        <h1 className="mt-2 font-display text-title font-bold">บันทึกผลซ้อม HYROX ของฉัน</h1>
-        <p className="mt-3 max-w-2xl text-lead text-muted">
-          ซ้อม Sim ที่ REAL GYM แล้วจดเวลาไว้ที่นี่ ดูว่าวิ่ง สถานี หรือ ROX ZONE ตรงไหนที่ยังเร็วขึ้นได้อีก
-        </p>
+        <h1 className="mt-1 font-display text-3xl font-bold sm:text-title">บันทึกผลซ้อม HYROX ของฉัน</h1>
+        <p className="mt-2 max-w-2xl text-muted">จับเวลา Sim แบบแข่งจริง หรือสร้างโปรแกรม HIIT ของตัวเอง แล้วดูพัฒนาการทุกครั้ง</p>
 
-        <section className="mt-10" aria-labelledby="guide">
-          <h2 id="guide" className="mb-4 font-display text-2xl font-bold">
-            ใช้งานง่าย ๆ 4 สเต็ป
-          </h2>
-          <Guide />
-        </section>
+        <div className="mt-5">
+          <GuideToggle>
+            <Guide />
+          </GuideToggle>
+        </div>
 
-        <section className="mt-14" aria-label="บันทึกผล">
+        <section className="mt-6" aria-label="บันทึกผล">
           <HyroxLoader />
         </section>
       </main>

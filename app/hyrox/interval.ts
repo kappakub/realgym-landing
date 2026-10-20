@@ -11,6 +11,8 @@ export type Step = {
   name: string;
   target: Target;
   value: number;
+  /** ข้อความแทนระยะ/จำนวน (เช่น ROX ZONE "เข้าสถานี") */
+  label?: string;
 };
 
 export type Program = {
@@ -38,14 +40,16 @@ export const KIND_NAME: Record<SegmentKind, string> = {
   rest: "พัก",
 };
 
-export function describeTarget(s: Pick<Step, "target" | "value">) {
+export function describeTarget(s: Pick<Step, "target" | "value" | "label">) {
+  if (s.label) return s.label;
   if (s.target === "distance") return s.value >= 1000 && s.value % 100 === 0 ? `${s.value / 1000} km` : `${s.value} m`;
   if (s.target === "reps") return `${s.value} ครั้ง`;
   return s.value < 60 ? `${s.value} วิ` : formatTime(s.value * 1000);
 }
 
 /** คำอ่านสำหรับเสียงพูด */
-export function speakTarget(s: Pick<Step, "target" | "value">) {
+export function speakTarget(s: Pick<Step, "target" | "value" | "label">) {
+  if (s.label) return "";
   if (s.target === "distance") return s.value >= 1000 && s.value % 100 === 0 ? `${s.value / 1000} กิโลเมตร` : `${s.value} เมตร`;
   if (s.target === "reps") return `${s.value} ครั้ง`;
   const m = Math.floor(s.value / 60);
@@ -424,6 +428,20 @@ export function createRunner(queue: QueueItem[], settings: SoundSettings) {
       unlockAudio();
       resumeAt = Date.now();
       emit({ phase: "run" });
+    },
+    /** ย้อนกลับไปช่วงก่อนหน้า (กดเสร็จพลาด) เวลาช่วงก่อนหน้านับต่อจากเดิม ไม่เสียเวลาที่ผ่านไป */
+    back() {
+      if ((snap.phase !== "run" && snap.phase !== "paused") || snap.index === 0) return;
+      const now = Date.now();
+      const prev = snap.index - 1;
+      const results = [...snap.results];
+      const carried = (results[prev] ?? 0) + elapsedAt(now);
+      results[prev] = null;
+      elapsedBefore = carried;
+      resumeAt = snap.phase === "run" ? now : null;
+      lastBeep = -1;
+      if (settings.vibrate) vibrate(80);
+      emit({ index: prev, results, elapsed: carried });
     },
     /** จบก่อนกำหนด เก็บเวลาช่วงปัจจุบันไว้ด้วย */
     stop() {

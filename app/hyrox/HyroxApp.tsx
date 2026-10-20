@@ -26,91 +26,69 @@ import {
 } from "./store";
 
 import CustomProgram from "./CustomProgram";
+import { loadSoundSettings, unlockAudio, type QueueItem } from "./interval";
+import { RunnerHost } from "./RunScreen";
 import { KIND_STYLE, TimeInput, Totals, inputCls } from "./ui";
 
-/* ---------- นาฬิกาจับเวลาแบบแข่งจริง ---------- */
+/* ---------- เริ่มจับเวลา SIM แบบเต็มจอ ---------- */
 
-function RaceTimer({ segments, onSplit }: { segments: Segment[]; onSplit: (index: number, ms: number) => void }) {
-  const [startAt, setStartAt] = useState<number | null>(null);
-  const [lastSplit, setLastSplit] = useState<number | null>(null);
-  const [now, setNow] = useState(0);
+/** แปลงช่วงของเทมเพลต HYROX เป็นลำดับให้ตัวจับเวลา (ทุกช่วงกดเองเมื่อจบ เหมือนแข่งจริง) */
+function simQueue(segments: Segment[]): QueueItem[] {
+  return segments.map((seg, i) => {
+    const m = /^([d.]+)s*(km|m|reps)$/.exec(seg.amount);
+    const value = m ? Number(m[1]) * (m[2] === "km" ? 1000 : 1) : 0;
+    return {
+      round: 1,
+      step: {
+        id: `sim-${i}`,
+        kind: seg.kind,
+        name: seg.name,
+        target: m?.[2] === "reps" ? "reps" : "distance",
+        value,
+        ...(m ? {} : { label: seg.amount }),
+      },
+    };
+  });
+}
 
-  useEffect(() => {
-    if (startAt == null) return;
-    const id = window.setInterval(() => setNow(Date.now()), 100);
-    return () => window.clearInterval(id);
-  }, [startAt]);
+function RaceLaunch({ segments, onResults }: { segments: Segment[]; onResults: (r: (number | null)[]) => void }) {
+  const [running, setRunning] = useState(false);
+  const [queue] = useState(() => simQueue(segments));
+  const filled = segments.some((s) => s.ms != null);
 
-  const current = segments.findIndex((s) => s.ms == null);
-  const done = current === -1;
-  const running = startAt != null && !done;
-
-  const start = () => {
-    const t = Date.now();
-    setStartAt(t);
-    setLastSplit(t);
-    setNow(t);
-  };
-  const split = () => {
-    if (lastSplit == null || done) return;
-    const t = Date.now();
-    onSplit(current, t - lastSplit);
-    setLastSplit(t);
-    setNow(t);
-    if (current === segments.length - 1) setStartAt(null);
-  };
+  if (running) {
+    return (
+      <RunnerHost
+        race
+        queue={queue}
+        rounds={1}
+        sound={loadSoundSettings()}
+        onDone={(r) => {
+          setRunning(false);
+          onResults(r);
+        }}
+      />
+    );
+  }
 
   return (
-    <div className="rounded-3xl border border-brand/40 bg-gradient-to-br from-brand/10 to-transparent p-4 sm:p-5">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs text-muted">จับเวลาแบบแข่งจริง</p>
-          <p className="font-mono text-4xl font-bold">
-            {formatTime(running && startAt != null ? now - startAt : null, true)}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-xs text-muted">ช่วงตอนนี้</p>
-          <p className={`font-display font-bold ${done ? "text-brand" : KIND_STYLE[segments[current].kind].text}`}>
-            {done ? "จบการแข่งขัน 🎉" : segments[current].name}
-          </p>
-          <p className="font-mono text-sm text-muted">
-            {running && lastSplit != null ? formatTime(now - lastSplit, true) : ""}
-          </p>
-        </div>
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        {!running ? (
-          <button
-            type="button"
-            onClick={start}
-            disabled={done}
-            className="col-span-2 rounded-full bg-brand py-3.5 font-display text-lg font-bold text-brand-ink disabled:opacity-40"
-          >
-            {current > 0 ? "เริ่มจับต่อจากช่วงนี้" : "เริ่มจับเวลา"}
-          </button>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={() => setStartAt(null)}
-              className="rounded-full border border-line py-3.5 font-display font-bold"
-            >
-              หยุด
-            </button>
-            <button
-              type="button"
-              onClick={split}
-              className="rounded-full bg-brand py-3.5 font-display text-lg font-bold text-brand-ink"
-            >
-              จบช่วงนี้ ▶
-            </button>
-          </>
-        )}
-      </div>
-      <p className="mt-2 text-center text-xs text-muted">
-        กด “จบช่วงนี้” ทุกครั้งที่เปลี่ยนช่วง ระบบจะกรอกเวลาให้อัตโนมัติ หรือพิมพ์เวลาเองด้านล่างก็ได้
+    <div className="rounded-3xl border border-brand/40 bg-gradient-to-br from-brand/10 to-transparent p-5">
+      <p className="font-display text-lg font-bold">⏱ จับเวลาแบบแข่งจริง (เต็มจอ)</p>
+      <p className="mt-1 text-sm text-muted">
+        นับ 3-2-1 แล้วเริ่ม กดปุ่มใหญ่ทุกครั้งที่จบช่วง ทั้งวิ่ง ROX ZONE และสถานี กดพลาดกด “↩ ย้อน” ได้ มีเสียงบอกช่วงต่อไป
       </p>
+      <button
+        type="button"
+        onClick={() => {
+          if (filled && !window.confirm("มีเวลาที่กรอกไว้แล้ว เริ่มจับใหม่จะเขียนทับ ใช่ไหม?")) return;
+          unlockAudio();
+          setRunning(true);
+        }}
+        className="mt-4 w-full rounded-full bg-brand py-4 font-display text-xl font-bold text-brand-ink"
+      >
+        ▶ เริ่มจับเวลา
+      </button>
+      <p className="mt-2 text-center text-xs text-muted">หรือพิมพ์เวลาเองในรายการด้านล่าง เช่น 435 = 4:35</p>
     </div>
   );
 }
@@ -252,7 +230,10 @@ function NewSessionForm({ onSaved }: { onSaved: () => void }) {
         </label>
       </div>
 
-        <RaceTimer segments={segments} onSplit={(i, ms) => setMs(i, ms)} />
+        <RaceLaunch
+          segments={segments}
+          onResults={(r) => setSegments((prev) => prev.map((s, i) => (r[i] != null ? { ...s, ms: r[i] } : s)))}
+        />
         <div className="flex items-center justify-between text-sm">
           <p className="font-display font-bold">ผลแยกแต่ละช่วง</p>
           <p className="text-muted">กรอกแล้ว {filled}/{segments.length}</p>
