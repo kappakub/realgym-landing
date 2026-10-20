@@ -1,6 +1,7 @@
 import BookingSection from "./BookingSection";
 import Link from "next/link";
 import Journey from "./Journey";
+import MobileMenu from "./MobileMenu";
 import {
   FACEBOOK_URL,
   LINE_URL,
@@ -143,7 +144,10 @@ export default function Home() {
             <a href="#faq" className="hover:text-foreground">คำถาม</a>
             <a href="#contact" className="hover:text-foreground">สาขา</a>
           </nav>
-          <LineButton />
+          <div className="flex items-center gap-2">
+            <LineButton />
+            <MobileMenu />
+          </div>
         </div>
       </header>
 
@@ -415,6 +419,7 @@ export default function Home() {
             <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">Facebook</a>
             <a href={MESSENGER_URL} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">Messenger</a>
             <a href={YOUTUBE_URL} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">YouTube</a>
+            <Link href="/hyrox" className="text-rox hover:text-foreground">บันทึก HYROX</Link>
           </div>
         </div>
         <p className="mt-6 text-center text-xs text-muted">© 2026 REAL GYM</p>

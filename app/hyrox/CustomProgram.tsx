@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { STATION_PRESETS, formatTime, parseTime, todayISO, totals, type SegmentKind } from "./hyrox";
+import { STATION_PRESETS, formatTime, todayISO, totals, type SegmentKind } from "./hyrox";
 import {
   KIND_NAME,
   PRESETS,
@@ -29,6 +29,7 @@ import {
 } from "./interval";
 import { saveSession } from "./store";
 import { KIND_STYLE, TimeInput, Totals, inputCls } from "./ui";
+import { DurationWheel, RepsWheel } from "./Wheel";
 
 const TARGETS: { id: Target; label: string; hint: string }[] = [
   { id: "distance", label: "ระยะทาง", hint: "กดเองเมื่อถึง" },
@@ -39,26 +40,6 @@ const TARGETS: { id: Target; label: string; hint: string }[] = [
 const KINDS: SegmentKind[] = ["run", "station", "roxzone", "rest"];
 
 const defaultName = (k: SegmentKind) => (k === "station" ? "SkiErg" : k === "run" ? "วิ่ง" : k === "rest" ? "พัก" : "ROX ZONE");
-
-/* ---------- ช่องกรอกวินาที (พิมพ์ 30 = 30 วิ, 1:30 = 1 นาทีครึ่ง) ---------- */
-
-function SecondsInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-  const [text, setText] = useState(value < 60 ? String(value) : formatTime(value * 1000));
-  return (
-    <input
-      inputMode="numeric"
-      aria-label="เวลา (วินาที หรือ นาที:วินาที)"
-      value={text}
-      onChange={(e) => setText(e.target.value)}
-      onBlur={() => {
-        const ms = text.includes(":") ? parseTime(text) : Number(text) * 1000;
-        if (ms && ms > 0) onChange(Math.round(ms / 1000));
-        else setText(value < 60 ? String(value) : formatTime(value * 1000));
-      }}
-      className={`${inputCls} w-24 text-center font-mono`}
-    />
-  );
-}
 
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -159,7 +140,7 @@ function StepCard({
               type="button"
               aria-pressed={s.target === t.id}
               onClick={() =>
-                onChange({ target: t.id, value: t.id === "time" ? 30 : t.id === "reps" ? 20 : s.kind === "run" ? 500 : 50 })
+                onChange({ target: t.id, value: t.id === "time" ? 30 : t.id === "reps" ? 10 : s.kind === "run" ? 500 : 50 })
               }
               className={`rounded-xl border px-2 py-2 text-left ${s.target === t.id ? "border-brand bg-brand/10" : "border-line"}`}
             >
@@ -170,11 +151,16 @@ function StepCard({
         </div>
       )}
 
-      <div className="mt-3 flex items-center gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-3">
         {s.target === "time" ? (
           <>
-            <SecondsInput key={s.value} value={s.value} onChange={(v) => onChange({ value: v })} />
-            <span className="text-sm text-muted">วินาที (หรือพิมพ์ 1:30)</span>
+            <DurationWheel key={`t-${s.value}`} seconds={s.value} onChange={(v) => onChange({ value: v })} label={`เวลา ${s.name}`} />
+            <span className="text-xs text-muted">เลื่อนขึ้นลงเพื่อเลือกเวลา</span>
+          </>
+        ) : s.target === "reps" ? (
+          <>
+            <RepsWheel key={`r-${s.value}`} value={s.value} onChange={(v) => onChange({ value: v })} label={`จำนวนครั้ง ${s.name}`} />
+            <span className="text-xs text-muted">เลื่อนขึ้นลงเพื่อเลือกจำนวนครั้ง</span>
           </>
         ) : (
           <>
@@ -182,12 +168,12 @@ function StepCard({
               type="number"
               inputMode="numeric"
               min={1}
-              aria-label={s.target === "distance" ? "ระยะทาง (เมตร)" : "จำนวนครั้ง"}
+              aria-label="ระยะทาง (เมตร)"
               value={s.value || ""}
               onChange={(e) => onChange({ value: Math.max(0, Math.round(Number(e.target.value))) })}
               className={`${inputCls} w-28 text-center font-mono`}
             />
-            <span className="text-sm text-muted">{s.target === "distance" ? "เมตร" : "ครั้ง"}</span>
+            <span className="text-sm text-muted">เมตร</span>
           </>
         )}
       </div>
@@ -315,7 +301,7 @@ function Builder({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
+      <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
         <label className="block text-sm">
           <span className="mb-1 block text-muted">ชื่อโปรแกรม</span>
           <input value={program.name} onChange={(e) => setProgram({ ...program, name: e.target.value })} placeholder="เช่น ซ้อมขา + วิ่ง" className={inputCls} />
@@ -328,22 +314,24 @@ function Builder({
             <button type="button" aria-label="เพิ่มรอบ" onClick={() => setProgram({ ...program, rounds: Math.min(30, program.rounds + 1) })} className="h-11 w-11 rounded-full border border-line text-xl">+</button>
           </div>
         </div>
-        <label className="block text-sm">
-          <span className="mb-1 block text-muted">พักระหว่างรอบ</span>
-          <select
-            value={program.roundRest}
-            onChange={(e) => setProgram({ ...program, roundRest: Number(e.target.value) })}
-            disabled={program.rounds < 2}
-            className={`${inputCls} disabled:opacity-40`}
-          >
-            {[0, 15, 30, 45, 60, 90, 120, 180].map((s) => (
-              <option key={s} value={s}>
-                {s === 0 ? "ไม่พัก" : s < 60 ? `${s} วิ` : `${s / 60} นาที`}
-              </option>
-            ))}
-          </select>
-        </label>
       </div>
+
+      {program.rounds > 1 && (
+        <div className="rounded-3xl border border-line bg-surface p-4">
+          <p className="font-display font-bold">⏸ พักระหว่างรอบ</p>
+          <p className="text-xs text-muted">เลื่อนเลือกเวลาเองได้ · 00:00 = ไม่พัก</p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <DurationWheel key={`rr-${program.roundRest}`} seconds={program.roundRest} onChange={(v) => setProgram({ ...program, roundRest: v })} label="พักระหว่างรอบ" />
+            <div className="flex flex-wrap gap-2">
+              {[0, 30, 60, 90, 120].map((v) => (
+                <Chip key={v} active={program.roundRest === v} onClick={() => setProgram({ ...program, roundRest: v })}>
+                  {v === 0 ? "ไม่พัก" : v < 60 ? `${v} วิ` : `${v / 60} นาที`}
+                </Chip>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-2">
         {steps.map((s, i) => (
